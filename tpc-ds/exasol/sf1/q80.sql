@@ -1,0 +1,32 @@
+-- Q80: Multi-Channel Net Profit
+WITH ssr AS (
+  SELECT s_store_id AS store_id, SUM(ss_ext_sales_price) AS sales, SUM(COALESCE(sr_return_amt, 0)) AS returns_val, SUM(ss_net_profit - COALESCE(sr_net_loss, 0)) AS profit
+  FROM TPCDS_1GB.STORE_SALES LEFT OUTER JOIN TPCDS_1GB.STORE_RETURNS ON ss_item_sk = sr_item_sk AND ss_ticket_number = sr_ticket_number,
+    TPCDS_1GB.DATE_DIM, TPCDS_1GB.STORE, TPCDS_1GB.ITEM, TPCDS_1GB.PROMOTION
+  WHERE ss_sold_date_sk = d_date_sk AND d_date BETWEEN DATE '2000-08-23' AND DATE '2000-08-23' + INTERVAL '30' DAY AND ss_store_sk = s_store_sk AND ss_item_sk = i_item_sk AND i_current_price > 50 AND ss_promo_sk = p_promo_sk AND p_channel_tv = 'N'
+  GROUP BY s_store_id
+),
+csr AS (
+  SELECT cp_catalog_page_id AS catalog_page_id, SUM(cs_ext_sales_price) AS sales, SUM(COALESCE(cr_return_amount, 0)) AS returns_val, SUM(cs_net_profit - COALESCE(cr_net_loss, 0)) AS profit
+  FROM TPCDS_1GB.CATALOG_SALES LEFT OUTER JOIN TPCDS_1GB.CATALOG_RETURNS ON cs_item_sk = cr_item_sk AND cs_order_number = cr_order_number,
+    TPCDS_1GB.DATE_DIM, TPCDS_1GB.CATALOG_PAGE, TPCDS_1GB.ITEM, TPCDS_1GB.PROMOTION
+  WHERE cs_sold_date_sk = d_date_sk AND d_date BETWEEN DATE '2000-08-23' AND DATE '2000-08-23' + INTERVAL '30' DAY AND cs_catalog_page_sk = cp_catalog_page_sk AND cs_item_sk = i_item_sk AND i_current_price > 50 AND cs_promo_sk = p_promo_sk AND p_channel_tv = 'N'
+  GROUP BY cp_catalog_page_id
+),
+wsr AS (
+  SELECT web_site_id, SUM(ws_ext_sales_price) AS sales, SUM(COALESCE(wr_return_amt, 0)) AS returns_val, SUM(ws_net_profit - COALESCE(wr_net_loss, 0)) AS profit
+  FROM TPCDS_1GB.WEB_SALES LEFT OUTER JOIN TPCDS_1GB.WEB_RETURNS ON ws_item_sk = wr_item_sk AND ws_order_number = wr_order_number,
+    TPCDS_1GB.DATE_DIM, TPCDS_1GB.WEB_SITE, TPCDS_1GB.ITEM, TPCDS_1GB.PROMOTION
+  WHERE ws_sold_date_sk = d_date_sk AND d_date BETWEEN DATE '2000-08-23' AND DATE '2000-08-23' + INTERVAL '30' DAY AND ws_web_site_sk = web_site_sk AND ws_item_sk = i_item_sk AND i_current_price > 50 AND ws_promo_sk = p_promo_sk AND p_channel_tv = 'N'
+  GROUP BY web_site_id
+)
+SELECT channel, id, SUM(sales) AS sales, SUM(returns_val) AS returns_val, SUM(profit) AS profit
+FROM (
+  SELECT 'store channel' AS channel, CONCAT('store', store_id) AS id, sales, returns_val, profit FROM ssr
+  UNION ALL
+  SELECT 'catalog channel' AS channel, CONCAT('catalog_page', catalog_page_id) AS id, sales, returns_val, profit FROM csr
+  UNION ALL
+  SELECT 'web channel' AS channel, CONCAT('web_site', web_site_id) AS id, sales, returns_val, profit FROM wsr
+) x
+GROUP BY ROLLUP(channel, id)
+ORDER BY channel, id LIMIT 100;

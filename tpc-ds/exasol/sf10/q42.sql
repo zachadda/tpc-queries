@@ -1,0 +1,6 @@
+-- Q42: Item Date Sales Monthly
+SELECT dt.d_year, item.i_category_id, item.i_category, SUM(ss_ext_sales_price) sum_sales
+FROM TPCDS_10GB.DATE_DIM dt, TPCDS_10GB.STORE_SALES, TPCDS_10GB.ITEM
+WHERE dt.d_date_sk = store_sales.ss_sold_date_sk AND store_sales.ss_item_sk = item.i_item_sk AND item.i_manager_id = 1 AND dt.d_moy = 11 AND dt.d_year = 2000
+GROUP BY dt.d_year, item.i_category_id, item.i_category
+ORDER BY sum_sales DESC, dt.d_year, item.i_category_id, item.i_category LIMIT 100;

@@ -1,0 +1,10 @@
+-- Q18: Catalog Sales Demographics
+SELECT i_item_id, ca_country, ca_state, ca_county,
+  AVG(CAST(cs_quantity AS DECIMAL(12,2))) agg1, AVG(CAST(cs_list_price AS DECIMAL(12,2))) agg2,
+  AVG(CAST(cs_coupon_amt AS DECIMAL(12,2))) agg3, AVG(CAST(cs_sales_price AS DECIMAL(12,2))) agg4,
+  AVG(CAST(cs_net_profit AS DECIMAL(12,2))) agg5, AVG(CAST(c_birth_year AS DECIMAL(12,2))) agg6,
+  AVG(CAST(cd_dep_count AS DECIMAL(12,2))) agg7
+FROM TPCDS_10GB.CATALOG_SALES, TPCDS_10GB.CUSTOMER_DEMOGRAPHICS, TPCDS_10GB.CUSTOMER, TPCDS_10GB.CUSTOMER_ADDRESS, TPCDS_10GB.DATE_DIM, TPCDS_10GB.ITEM
+WHERE cs_sold_date_sk = d_date_sk AND cs_item_sk = i_item_sk AND cs_bill_cdemo_sk = cd_demo_sk AND cs_bill_customer_sk = c_customer_sk AND cd_gender = 'F' AND cd_education_status = 'Unknown' AND c_current_cdemo_sk = cd_demo_sk AND c_current_addr_sk = ca_address_sk AND c_birth_month IN (1, 6, 8, 9, 12, 2) AND d_year = 1998 AND ca_state IN ('MS', 'IN', 'ND', 'OK', 'NM', 'VA', 'MS')
+GROUP BY ROLLUP(i_item_id, ca_country, ca_state, ca_county)
+ORDER BY ca_country, ca_state, ca_county, i_item_id LIMIT 100;

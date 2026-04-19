@@ -1,0 +1,8 @@
+-- Q6: Sales Quantity Filter
+SELECT a.ca_state state_code, COUNT(*) cnt
+FROM TPCDS_1000GB.CUSTOMER_ADDRESS a, TPCDS_1000GB.CUSTOMER c, TPCDS_1000GB.STORE_SALES s, TPCDS_1000GB.DATE_DIM d, TPCDS_1000GB.ITEM i
+WHERE a.ca_address_sk = c.c_current_addr_sk AND c.c_customer_sk = s.ss_customer_sk AND s.ss_sold_date_sk = d.d_date_sk AND s.ss_item_sk = i.i_item_sk AND d.d_month_seq = (SELECT DISTINCT d_month_seq FROM TPCDS_1000GB.DATE_DIM WHERE d_year = 2001 AND d_moy = 1)
+AND i.i_current_price > 1.2 * (SELECT AVG(j.i_current_price) FROM TPCDS_1000GB.ITEM j WHERE j.i_category = i.i_category)
+GROUP BY a.ca_state
+HAVING COUNT(*) >= 10
+ORDER BY cnt LIMIT 100;
