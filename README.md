@@ -58,7 +58,7 @@ All 22 TPC-H queries produce results identical to the official TPC-H specificati
 | **Q17** | Correlated subquery | Window function (`AVG() OVER PARTITION BY`) | Avoids redundant table scans — same result |
 | **Q20** | Nested correlated subqueries | Pre-filtered JOINs with CTEs | Avoids redundant table scans — same result |
 
-These are standard SQL rewrites that any experienced DBA would make. All queries return bit-identical results to the TPC-H specification.
+All queries return bit-identical results to the TPC-H specification.
 
 ### Scale Factors
 
